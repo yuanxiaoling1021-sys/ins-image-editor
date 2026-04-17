@@ -520,7 +520,7 @@ shapeButtons.forEach((btn) => {
 
 swapMaskBtn.addEventListener("click", () => {
   state.swapMaskHalves = !state.swapMaskHalves;
-  swapMaskBtn.textContent = state.swapMaskHalves ? "上镂下实（点击切换）" : "上实下镂（点击切换）";
+  swapMaskBtn.textContent = "↕️ 上下";
   scheduleRender();
 });
 
