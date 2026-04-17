@@ -56,7 +56,7 @@ if (!visitorId) {
 }
 
 const ownerModeKey = "ins_editor_owner_mode";
-const ownerCode = "otot0919";
+const ownerCode = "Lynnxy";
 
 function syncOwnerModeFromUrl() {
   const params = new URLSearchParams(window.location.search);
