@@ -371,9 +371,9 @@ function drawPatternOverlay() {
     drawHalfMask(state.patternTop, 0, canvas.height * 0.5, false);
     drawHalfMask(state.patternBottom, canvas.height * 0.5, canvas.height * 0.5, true);
   } else {
-    // 对调：上镂下实（直接对调原上下样式）
-    drawHalfMask(state.patternBottom, 0, canvas.height * 0.5, true);
-    drawHalfMask(state.patternTop, canvas.height * 0.5, canvas.height * 0.5, false);
+    // B：上镂下实（位置不变，仅切换样式）
+    drawHalfMask(state.patternTop, 0, canvas.height * 0.5, true);
+    drawHalfMask(state.patternBottom, canvas.height * 0.5, canvas.height * 0.5, false);
   }
   overlayCtx.globalCompositeOperation = "source-over";
 
