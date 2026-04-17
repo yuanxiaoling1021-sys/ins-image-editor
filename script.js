@@ -411,11 +411,18 @@ function renderCanvas() {
 }
 
 async function handleUploadChange(e) {
-  const files = [...e.target.files].slice(0, 2);
-  if (!files.length) return;
+  const selectedFiles = [...e.target.files];
+  if (!selectedFiles.length) return;
+  if (selectedFiles.length > 2) {
+    alert("最多只能上传 2 张图片，请重新选择。");
+    uploadInput.value = "";
+    return;
+  }
+  const files = selectedFiles.slice(0, 2);
 
   try {
-    state.images = await Promise.all(files.map((f) => loadImage(f)));
+    const loaded = await Promise.all(files.map((f) => loadImage(f)));
+    state.images = loaded.length === 1 ? [loaded[0], loaded[0]] : loaded;
     scheduleRender();
   } catch (error) {
     console.error(error);
