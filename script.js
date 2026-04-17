@@ -5,6 +5,11 @@ const uploadInput = document.getElementById("uploadInput");
 const nextBtn = document.getElementById("nextBtn");
 const maskSection = document.getElementById("maskSection");
 const statsSection = document.getElementById("statsSection");
+const singleLayoutSection = document.getElementById("singleLayoutSection");
+const singleSplitBtn = document.getElementById("singleSplitBtn");
+const singleFullBtn = document.getElementById("singleFullBtn");
+const singleLayoutHint = document.getElementById("singleLayoutHint");
+const swapMaskRow = document.getElementById("swapMaskRow");
 const swapMaskBtn = document.getElementById("swapMaskBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 const statsHint = document.getElementById("statsHint");
@@ -36,6 +41,8 @@ let rafPending = false;
 
 const state = {
   images: [],
+  sourceImageCount: 0,
+  singleLayout: "split",
   scale: 1,
   offsetX: 0,
   offsetY: 0,
@@ -110,6 +117,19 @@ function scheduleRender() {
     rafPending = false;
     renderCanvas();
   });
+}
+
+function isSingleFullLayout() {
+  return state.sourceImageCount === 1 && state.singleLayout === "full";
+}
+
+function updateSingleLayoutUI() {
+  const isSingle = state.sourceImageCount === 1;
+  singleLayoutSection.classList.toggle("hidden", !isSingle);
+  singleSplitBtn.classList.toggle("active", isSingle && state.singleLayout === "split");
+  singleFullBtn.classList.toggle("active", isSingle && state.singleLayout === "full");
+  singleLayoutHint.classList.toggle("hidden", !isSingleFullLayout());
+  swapMaskRow.classList.toggle("hidden", isSingleFullLayout());
 }
 
 function clamp(value, min, max) {
@@ -348,6 +368,13 @@ function regeneratePatterns() {
   const sizeMin = base * 0.5;
   const sizeMax = base * 1.35;
 
+  if (isSingleFullLayout()) {
+    const fullCount = countPerHalf * 2;
+    state.patternTop = buildPatternGroup(0, canvas.height, fullCount, sizeMin, sizeMax, state.shape);
+    state.patternBottom = [];
+    return;
+  }
+
   state.patternTop = buildPatternGroup(0, canvas.height * 0.5, countPerHalf, sizeMin, sizeMax, state.shape);
   state.patternBottom = buildPatternGroup(
     canvas.height * 0.5,
@@ -382,6 +409,15 @@ function drawPatternOverlay() {
     overlayCtx.globalCompositeOperation = "source-over";
   };
 
+  if (isSingleFullLayout()) {
+    overlayCtx.fillStyle = state.maskColor;
+    for (const item of state.patternTop) {
+      drawShape(item.shape, item.x, item.y, item.size * 0.5, overlayCtx);
+    }
+    ctx.drawImage(overlayCanvas, 0, 0);
+    return;
+  }
+
   if (!state.swapMaskHalves) {
     // 默认：上实下镂
     drawHalfMask(state.patternTop, 0, canvas.height * 0.5, false);
@@ -410,9 +446,13 @@ function renderCanvas() {
   }
 
   if (state.images.length === 1) {
-    const h = canvas.height / 2;
-    drawCoverImage(state.images[0], 0, 0, canvas.width, h);
-    drawCoverImage(state.images[0], 0, h, canvas.width, h);
+    if (isSingleFullLayout()) {
+      drawCoverImage(state.images[0], 0, 0, canvas.width, canvas.height);
+    } else {
+      const h = canvas.height / 2;
+      drawCoverImage(state.images[0], 0, 0, canvas.width, h);
+      drawCoverImage(state.images[0], 0, h, canvas.width, h);
+    }
   } else {
     const h = canvas.height / 2;
     drawCoverImage(state.images[0], 0, 0, canvas.width, h);
@@ -434,7 +474,12 @@ async function handleUploadChange(e) {
 
   try {
     const loaded = await Promise.all(files.map((f) => loadImage(f)));
-    state.images = loaded.length === 1 ? [loaded[0], loaded[0]] : loaded;
+    state.sourceImageCount = loaded.length;
+    state.images = loaded;
+    state.singleLayout = "split";
+    state.swapMaskHalves = false;
+    updateSingleLayoutUI();
+    regeneratePatterns();
     scheduleRender();
   } catch (error) {
     console.error(error);
@@ -544,9 +589,27 @@ shapeButtons.forEach((btn) => {
 });
 
 swapMaskBtn.addEventListener("click", () => {
+  if (isSingleFullLayout()) return;
   state.swapMaskHalves = !state.swapMaskHalves;
   syncSwapButtonLabel();
   requestAnimationFrame(syncSwapButtonLabel);
+  scheduleRender();
+});
+
+singleSplitBtn.addEventListener("click", () => {
+  if (state.sourceImageCount !== 1) return;
+  state.singleLayout = "split";
+  updateSingleLayoutUI();
+  regeneratePatterns();
+  scheduleRender();
+});
+
+singleFullBtn.addEventListener("click", () => {
+  if (state.sourceImageCount !== 1) return;
+  state.singleLayout = "full";
+  state.swapMaskHalves = false;
+  updateSingleLayoutUI();
+  regeneratePatterns();
   scheduleRender();
 });
 
@@ -616,6 +679,7 @@ bindSlider(densityRange, densityValue, (v) => `${v}`, (v) => {
 colorPreview.style.background = state.maskColor;
 bindCanvasTouchGestures();
 enforceSwapButtonLabel();
+updateSingleLayoutUI();
 scheduleRender();
 syncOwnerModeFromUrl();
 applyStatsVisibility();

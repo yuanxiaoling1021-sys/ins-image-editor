@@ -55,7 +55,16 @@
           </div>
         </div>
 
-        <div class="shape-row">
+        <div id="singleLayoutSection" class="shape-row hidden">
+          <span>单图样式</span>
+          <div class="shape-options">
+            <button id="singleSplitBtn" class="shape-btn active" type="button">上下平铺</button>
+            <button id="singleFullBtn" class="shape-btn" type="button">全画幅竖图</button>
+          </div>
+          <p id="singleLayoutHint" class="tip hidden">全画幅竖图模式仅使用实心贴纸。</p>
+        </div>
+
+        <div id="swapMaskRow" class="shape-row">
           <span>↕️ 上下</span>
           <button id="swapMaskBtn" class="shape-btn" type="button" aria-label="上下切换">↕️</button>
         </div>
