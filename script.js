@@ -427,9 +427,6 @@ function syncScaleControl() {
 }
 
 function bindCanvasTouchGestures() {
-  let dragging = false;
-  let lastX = 0;
-  let lastY = 0;
   let pinchStartDistance = 0;
   let pinchStartScale = 1;
 
@@ -437,19 +434,13 @@ function bindCanvasTouchGestures() {
     "touchstart",
     (e) => {
       if (!state.images.length) return;
-      if (e.touches.length === 1) {
-        dragging = true;
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
-      }
       if (e.touches.length === 2) {
-        dragging = false;
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         pinchStartDistance = Math.hypot(dx, dy);
         pinchStartScale = state.scale;
+        e.preventDefault();
       }
-      e.preventDefault();
     },
     { passive: false }
   );
@@ -458,17 +449,6 @@ function bindCanvasTouchGestures() {
     "touchmove",
     (e) => {
       if (!state.images.length) return;
-      if (e.touches.length === 1 && dragging) {
-        const x = e.touches[0].clientX;
-        const y = e.touches[0].clientY;
-        state.offsetX = clamp(state.offsetX - (x - lastX), -200, 200);
-        state.offsetY = clamp(state.offsetY - (y - lastY), -300, 300);
-        lastX = x;
-        lastY = y;
-        syncOffsetControls();
-        scheduleRender();
-      }
-
       if (e.touches.length === 2 && pinchStartDistance > 0) {
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -477,14 +457,13 @@ function bindCanvasTouchGestures() {
         state.scale = clamp(pinchStartScale * ratio, 0.5, 2);
         syncScaleControl();
         scheduleRender();
+        e.preventDefault();
       }
-      e.preventDefault();
     },
     { passive: false }
   );
 
   canvas.addEventListener("touchend", () => {
-    dragging = false;
     pinchStartDistance = 0;
   });
 }

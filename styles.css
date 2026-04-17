@@ -54,10 +54,37 @@ body {
   display: inline-block;
   margin-bottom: 8px;
   font-weight: 600;
+  font-size: 1.05rem;
 }
 
 .file-input input {
   width: 100%;
+}
+
+.file-input input[type="file"] {
+  font-size: 1rem;
+}
+
+.file-input input[type="file"]::file-selector-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  margin-right: 10px;
+  background: linear-gradient(135deg, #6e7cff 0%, #7f5bff 45%, #ff5bb0 100%);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.file-input input[type="file"]::-webkit-file-upload-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  margin-right: 10px;
+  background: linear-gradient(135deg, #6e7cff 0%, #7f5bff 45%, #ff5bb0 100%);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .tip {
@@ -231,5 +258,17 @@ canvas {
 @media (min-width: 860px) {
   .control-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .file-input span {
+    font-size: 1.12rem;
+  }
+
+  .file-input input[type="file"]::file-selector-button,
+  .file-input input[type="file"]::-webkit-file-upload-button {
+    padding: 14px 20px;
+    font-size: 1rem;
   }
 }
