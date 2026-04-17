@@ -5,6 +5,7 @@ const uploadInput = document.getElementById("uploadInput");
 const nextBtn = document.getElementById("nextBtn");
 const maskSection = document.getElementById("maskSection");
 const statsSection = document.getElementById("statsSection");
+const swapMaskBtn = document.getElementById("swapMaskBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 const statsHint = document.getElementById("statsHint");
 const totalUsersEl = document.getElementById("totalUsers");
@@ -28,7 +29,7 @@ const offsetYValue = document.getElementById("offsetYValue");
 const shapeSizeValue = document.getElementById("shapeSizeValue");
 const densityValue = document.getElementById("densityValue");
 
-const shapeButtons = [...document.querySelectorAll(".shape-btn")];
+const shapeButtons = [...document.querySelectorAll(".shape-options .shape-btn")];
 const overlayCanvas = document.createElement("canvas");
 const overlayCtx = overlayCanvas.getContext("2d");
 let rafPending = false;
@@ -42,6 +43,7 @@ const state = {
   maskColor: "#ff5a7a",
   shapeSize: 40,
   density: 90,
+  swapMaskHalves: false,
   step2Enabled: false,
   patternTop: [],
   patternBottom: [],
@@ -347,19 +349,27 @@ function drawPatternOverlay() {
   if (overlayCanvas.height !== canvas.height) overlayCanvas.height = canvas.height;
   overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-  // 上半区：图案实心，其他留空
-  overlayCtx.fillStyle = state.maskColor;
-  for (const item of state.patternTop) {
-    drawShape(item.shape, item.x, item.y, item.size * 0.5, overlayCtx);
-  }
+  const drawHalfMask = (items, yStart, yHeight, hollow) => {
+    overlayCtx.fillStyle = state.maskColor;
+    if (!hollow) {
+      for (const item of items) {
+        drawShape(item.shape, item.x, item.y, item.size * 0.5, overlayCtx);
+      }
+      return;
+    }
 
-  // 下半区：先整块实心，再挖空图案 -> 叠回主图后空心区域透出原照片
-  overlayCtx.fillStyle = state.maskColor;
-  overlayCtx.fillRect(0, canvas.height * 0.5, canvas.width, canvas.height * 0.5);
-  overlayCtx.globalCompositeOperation = "destination-out";
-  for (const item of state.patternBottom) {
-    drawShape(item.shape, item.x, item.y, item.size * 0.5, overlayCtx);
-  }
+    overlayCtx.fillRect(0, yStart, canvas.width, yHeight);
+    overlayCtx.globalCompositeOperation = "destination-out";
+    for (const item of items) {
+      drawShape(item.shape, item.x, item.y, item.size * 0.5, overlayCtx);
+    }
+    overlayCtx.globalCompositeOperation = "source-over";
+  };
+
+  const topHollow = state.swapMaskHalves;
+  const bottomHollow = !state.swapMaskHalves;
+  drawHalfMask(state.patternTop, 0, canvas.height * 0.5, topHollow);
+  drawHalfMask(state.patternBottom, canvas.height * 0.5, canvas.height * 0.5, bottomHollow);
   overlayCtx.globalCompositeOperation = "source-over";
 
   ctx.drawImage(overlayCanvas, 0, 0);
@@ -501,6 +511,12 @@ shapeButtons.forEach((btn) => {
     regeneratePatterns();
     scheduleRender();
   });
+});
+
+swapMaskBtn.addEventListener("click", () => {
+  state.swapMaskHalves = !state.swapMaskHalves;
+  swapMaskBtn.textContent = state.swapMaskHalves ? "上镂下实（点击切换）" : "上实下镂（点击切换）";
+  scheduleRender();
 });
 
 downloadBtn.addEventListener("click", () => {
