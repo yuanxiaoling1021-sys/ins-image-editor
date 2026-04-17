@@ -484,7 +484,7 @@ nextBtn.addEventListener("click", () => {
   regeneratePatterns();
   maskSection.classList.remove("hidden");
   scheduleRender();
-  maskSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  maskSection.scrollIntoView({ behavior: "auto", block: "start" });
 });
 
 maskColorInput.addEventListener("input", () => {

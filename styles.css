@@ -248,7 +248,7 @@ canvas {
   border-radius: 10px;
   border: 1px solid #e8ebf9;
   background: #fff;
-  touch-action: none;
+  touch-action: pan-y pinch-zoom;
 }
 
 .hidden {
@@ -262,6 +262,11 @@ canvas {
 }
 
 @media (max-width: 640px) {
+  .panel,
+  .preview-wrap {
+    box-shadow: 0 2px 8px rgba(17, 22, 40, 0.04);
+  }
+
   .file-input span {
     font-size: 1.12rem;
   }
